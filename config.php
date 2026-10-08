@@ -25,14 +25,29 @@ if ($conn->connect_error) {
 }
 
 function getAccessToken() {
+    $consumerKey = CONSUMER_KEY;
+    $consumerSecret = CONSUMER_SECRET;
+
+    if (empty($consumerKey) || empty($consumerSecret)) {
+        return null;
+    }
+
     $url = 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials';
-    $credentials = base64_encode(CONSUMER_KEY . ':' . CONSUMER_SECRET);
+    $credentials = base64_encode($consumerKey . ':' . $consumerSecret);
 
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: Basic ' . $credentials]);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Prevents SSL handshake failures in container environments
+
     $response = curl_exec($ch);
+    
+    if (curl_errno($ch)) {
+        error_log("cURL Error in Access Token: " . curl_error($ch));
+        curl_close($ch);
+        return null;
+    }
+
     curl_close($ch);
 
     $result = json_decode($response);
