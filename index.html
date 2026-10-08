@@ -150,21 +150,24 @@
 
                 try {
                     // SECOND FETCH: Poll Database Status
-                    const res = await fetch(`status.php?checkout_id=${encodeURIComponent(checkoutId)}`);
-                    const resText = await res.text();
-                    console.log(`Poll Attempt ${attempts}:`, resText);
+ // Inside startPolling(checkoutId) in index.html:
 
-                    let data = JSON.parse(resText);
+const res = await fetch(`status.php?checkout_id=${encodeURIComponent(checkoutId)}`);
+const resText = await res.text();
+console.log("Polling output:", resText);
 
-                    if (data.status === 'SUCCESS') {
-                        clearInterval(pollingInterval);
-                        resetBtn();
-                        showStatus('success', `Payment Successful! Receipt: ${data.receipt}`);
-                    } else if (data.status === 'FAILED') {
-                        clearInterval(pollingInterval);
-                        resetBtn();
-                        showStatus('error', `Payment Failed: ${data.message}`);
-                    }
+let data = JSON.parse(resText);
+
+if (data.status === 'SUCCESS') {
+    clearInterval(pollingInterval);
+    resetBtn();
+    showStatus('success', `Payment Successful! Receipt: ${data.receipt}`);
+} else if (data.status === 'FAILED') {
+    clearInterval(pollingInterval);
+    resetBtn();
+    showStatus('error', `Payment Failed: ${data.message}`);
+}
+// If status is 'PENDING', keep polling automatically...
                     // If still 'PENDING', keep polling...
 
                 } catch (err) {

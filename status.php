@@ -1,68 +1,48 @@
 <?php
-// stk_push.php
+// status.php
 require_once 'config.php';
 
-$phone = $_POST['phone'] ?? '2547XXXXXXXX'; // Get phone dynamically or fallback
-$amount = 1;
+// Disable HTML error displays to ensure pure JSON response
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
 
-$timestamp = date('YmdHis');
-$password = base64_encode(BUSINESS_SHORTCODE . PASSKEY . $timestamp);
-$accessToken = getAccessToken();
+header("Content-Type: application/json");
 
-// Dynamic callback using Render URL
-$callbackUrl = rtrim(APP_URL, '/') . '/callback.php'; 
+$checkoutRequestId = $_GET['checkout_id'] ?? '';
 
-if (!$accessToken) {
-    die(json_encode(["status" => "error", "message" => "Failed to retrieve access token."]));
+if (empty($checkoutRequestId)) {
+    echo json_encode([
+        "status" => "ERROR", 
+        "message" => "Checkout Request ID is missing."
+    ]);
+    exit;
 }
 
-$stkUrl = 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest';
-
-$payload = [
-    'BusinessShortCode' => BUSINESS_SHORTCODE,
-    'Password'          => $password,
-    'Timestamp'         => $timestamp,
-    'TransactionType'   => 'CustomerBuyGoodsOnline',
-    'Amount'            => $amount,
-    'PartyA'            => $phone,
-    'PartyB'            => BUSINESS_SHORTCODE,
-    'PhoneNumber'       => $phone,
-    'CallBackURL'       => $callbackUrl,
-    'AccountReference'  => 'Test Payment',
-    'TransactionDesc'   => 'Testing 1 KES STK Push'
-];
-
-$ch = curl_init($stkUrl);
-curl_setopt($ch, CURLOPT_HTTPHEADER, [
-    'Authorization: Bearer ' . $accessToken,
-    'Content-Type: application/json'
-]);
-curl_setopt($ch, CURLOPT_POST, true);
-curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-$response = curl_exec($ch);
-curl_close($ch);
-
-$resData = json_decode($response, true);
-
-if (isset($resData['ResponseCode']) && $resData['ResponseCode'] == '0') {
-    $checkoutRequestId = $resData['CheckoutRequestID'];
-    $merchantRequestId = $resData['MerchantRequestID'];
-
-    $stmt = $conn->prepare("INSERT INTO stk_payments (checkout_request_id, merchant_request_id, phone_number, amount) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("sssd", $checkoutRequestId, $merchantRequestId, $phone, $amount);
+try {
+    $stmt = $conn->prepare("SELECT status, mpesa_receipt_number, result_desc FROM stk_payments WHERE checkout_request_id = ?");
+    $stmt->bind_param("s", $checkoutRequestId);
     $stmt->execute();
+    $result = $stmt->get_result();
 
+    if ($row = $result->fetch_assoc()) {
+        echo json_encode([
+            "status"  => $row['status'], // 'PENDING', 'SUCCESS', or 'FAILED'
+            "receipt" => $row['mpesa_receipt_number'] ?? '',
+            "message" => $row['result_desc'] ?? ''
+        ]);
+    } else {
+        echo json_encode([
+            "status"  => "NOT_FOUND",
+            "message" => "Transaction not found in database."
+        ]);
+    }
+
+    $stmt->close();
+
+} catch (Exception $e) {
     echo json_encode([
-        "status" => "success",
-        "message" => "STK Push sent. Check your phone.",
-        "checkout_id" => $checkoutRequestId
-    ]);
-} else {
-    echo json_encode([
-        "status" => "error", 
-        "message" => $resData['errorMessage'] ?? 'Unknown error'
+        "status"  => "ERROR",
+        "message" => $e->getMessage()
     ]);
 }
 ?>
