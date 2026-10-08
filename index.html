@@ -158,27 +158,27 @@
                 attempts++;
 
                 try {
-                    // Replace your fetch call in index.html with this safe response parser:
-const response = await fetch('stk_push.php', {
-    method: 'POST',
-    body: formData
-});
+                    const res = await fetch(`status.php?checkout_id=${encodeURIComponent(checkoutId)}`);
+                    const data = await res.json();
 
-const responseText = await response.text();
+                    if (data.status === 'SUCCESS') {
+                        clearInterval(pollInterval);
+                        resetButton();
+                        showStatus('success', 'Payment Successful!', 'Your transaction was confirmed.', data.receipt);
+                    } else if (data.status === 'FAILED') {
+                        clearInterval(pollInterval);
+                        resetButton();
+                        showStatus('error', 'Payment Failed', data.message || 'Transaction was canceled or failed.');
+                    }
 
-try {
-    const data = JSON.parse(responseText);
-    
-    if (data.status === 'success') {
-        // Proceed with polling status
-        pollPaymentStatus(data.checkout_id);
-    } else {
-        showStatus('error', data.message || 'Payment initiation failed.');
-    }
-} catch (e) {
-    console.error('Server returned non-JSON response:', responseText);
-    showStatus('error', 'Server error. Check browser developer console for details.');
-}
+                    if (attempts >= maxAttempts) {
+                        clearInterval(pollInterval);
+                        resetButton();
+                        showStatus('error', 'Timeout', 'No callback received from M-Pesa. Check your phone or try again.');
+                    }
+                } catch (err) {
+                    console.error('Polling error:', err);
+                }
             }, 3000);
         }
 
