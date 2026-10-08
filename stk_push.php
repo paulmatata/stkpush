@@ -2,7 +2,6 @@
 // stk_push.php
 require_once 'config.php';
 
-// Turn on error logging output to prevent silent blank pages
 ini_set('display_errors', 0);
 error_reporting(E_ALL);
 
@@ -10,7 +9,7 @@ header("Content-Type: application/json");
 
 $rawPhone = $_POST['phone'] ?? '';
 
-// Sanitize phone number to 254XXXXXXXXX format
+// Format phone number to 254XXXXXXXXX
 $phone = preg_replace('/[^0-9]/', '', $rawPhone);
 if (substr($phone, 0, 1) === '0') {
     $phone = '254' . substr($phone, 1);
@@ -33,14 +32,11 @@ $password = base64_encode(BUSINESS_SHORTCODE . PASSKEY . $timestamp);
 try {
     $accessToken = getAccessToken();
 
-// Temporary debug check in stk_push.php
-if (empty(CONSUMER_KEY) || empty(CONSUMER_SECRET)) {
-    echo json_encode([
-        "status" => "error", 
-        "message" => "Render Environment Variables not found! CONSUMER_KEY is empty."
-    ]);
-    exit;
-}
+    if (!$accessToken) {
+        echo json_encode(["status" => "error", "message" => "Failed to fetch Daraja Access Token."]);
+        exit;
+    }
+
     $callbackUrl = rtrim(APP_URL, '/') . '/callback.php'; 
     $stkUrl = 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest';
 
@@ -48,10 +44,10 @@ if (empty(CONSUMER_KEY) || empty(CONSUMER_SECRET)) {
         'BusinessShortCode' => BUSINESS_SHORTCODE,
         'Password'          => $password,
         'Timestamp'         => $timestamp,
-        'TransactionType'   => 'CustomerBuyGoodsOnline',
+        'TransactionType'   => 'CustomerPayBillOnline', // Changed from CustomerBuyGoodsOnline
         'Amount'            => $amount,
         'PartyA'            => $phone,
-        'PartyB'            => BUSINESS_SHORTCODE,
+        'PartyB'            => BUSINESS_SHORTCODE,       // Must match BusinessShortCode in Sandbox
         'PhoneNumber'       => $phone,
         'CallBackURL'       => $callbackUrl,
         'AccountReference'  => 'CloudP Tech',
@@ -59,13 +55,16 @@ if (empty(CONSUMER_KEY) || empty(CONSUMER_SECRET)) {
     ];
 
     $ch = curl_init($stkUrl);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'Authorization: Bearer ' . $accessToken,
-        'Content-Type: application/json'
+    curl_setopt_array($ch, [
+        CURLOPT_HTTPHEADER     => [
+            'Authorization: Bearer ' . $accessToken,
+            'Content-Type: application/json'
+        ],
+        CURLOPT_POST           => true,
+        CURLOPT_POSTFIELDS     => json_encode($payload),
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_SSL_VERIFYPEER => false
     ]);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
     $response = curl_exec($ch);
     
@@ -86,13 +85,13 @@ if (empty(CONSUMER_KEY) || empty(CONSUMER_SECRET)) {
 
         echo json_encode([
             "status" => "success",
-            "message" => "STK Push sent successfully.",
+            "message" => "STK Push sent successfully. Check your phone.",
             "checkout_id" => $checkoutRequestId
         ]);
     } else {
         echo json_encode([
             "status" => "error", 
-            "message" => $resData['errorMessage'] ?? $resData['ResponseDescription'] ?? 'Daraja error.'
+            "message" => $resData['errorMessage'] ?? $resData['ResponseDescription'] ?? 'Daraja request failed.'
         ]);
     }
 
