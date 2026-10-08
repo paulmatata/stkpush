@@ -33,11 +33,14 @@ $password = base64_encode(BUSINESS_SHORTCODE . PASSKEY . $timestamp);
 try {
     $accessToken = getAccessToken();
 
-    if (!$accessToken) {
-        echo json_encode(["status" => "error", "message" => "Failed to fetch Daraja Access Token."]);
-        exit;
-    }
-
+// Temporary debug check in stk_push.php
+if (empty(CONSUMER_KEY) || empty(CONSUMER_SECRET)) {
+    echo json_encode([
+        "status" => "error", 
+        "message" => "Render Environment Variables not found! CONSUMER_KEY is empty."
+    ]);
+    exit;
+}
     $callbackUrl = rtrim(APP_URL, '/') . '/callback.php'; 
     $stkUrl = 'https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest';
 
