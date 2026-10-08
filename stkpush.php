@@ -2,9 +2,12 @@
 // stk_push.php
 require_once 'config.php';
 
+// Turn on error logging output to prevent silent blank pages
+ini_set('display_errors', 0);
+error_reporting(E_ALL);
+
 header("Content-Type: application/json");
 
-// Read input from POST request
 $rawPhone = $_POST['phone'] ?? '';
 
 // Sanitize phone number to 254XXXXXXXXX format
@@ -31,7 +34,7 @@ try {
     $accessToken = getAccessToken();
 
     if (!$accessToken) {
-        echo json_encode(["status" => "error", "message" => "Failed to retrieve M-Pesa access token."]);
+        echo json_encode(["status" => "error", "message" => "Failed to fetch Daraja Access Token."]);
         exit;
     }
 
@@ -64,7 +67,7 @@ try {
     $response = curl_exec($ch);
     
     if (curl_errno($ch)) {
-        throw new Exception(curl_error($ch));
+        throw new Exception("cURL Error: " . curl_error($ch));
     }
     curl_close($ch);
 
@@ -80,13 +83,13 @@ try {
 
         echo json_encode([
             "status" => "success",
-            "message" => "STK Push sent successfully. Check your phone.",
+            "message" => "STK Push sent successfully.",
             "checkout_id" => $checkoutRequestId
         ]);
     } else {
         echo json_encode([
             "status" => "error", 
-            "message" => $resData['errorMessage'] ?? $resData['ResponseDescription'] ?? 'STK push failed.'
+            "message" => $resData['errorMessage'] ?? $resData['ResponseDescription'] ?? 'Daraja error.'
         ]);
     }
 

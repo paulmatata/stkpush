@@ -4,227 +4,197 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CloudP Tech Services - M-Pesa Payment</title>
-    <!-- Tailwind CSS for modern responsive styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .spinner {
-            border: 3px solid rgba(255, 255, 255, 0.3);
+        .loader {
+            border: 3px solid #f3f3f3;
             border-radius: 50%;
-            border-top-color: #fff;
+            border-top: 3px solid #10B981;
             width: 20px;
             height: 20px;
-            animation: spin 0.8s linear infinite;
+            animation: spin 1s linear infinite;
         }
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center p-4">
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4">
 
-    <div class="max-w-md w-full bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden">
-        
-        <!-- Header Branding -->
-        <div class="bg-gradient-to-r from-emerald-600 to-teal-700 p-6 text-center">
-            <div class="inline-flex items-center justify-center w-12 h-12 bg-white/10 rounded-xl mb-3 backdrop-blur-sm">
-                <!-- Cloud SVG Icon -->
-                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 001-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z"></path>
-                </svg>
-            </div>
-            <h1 class="text-2xl font-bold text-white tracking-tight">CloudP Tech Services</h1>
-            <p class="text-emerald-100 text-xs font-medium mt-1">Instant M-Pesa Payment Portal</p>
+    <div class="max-w-md w-full bg-gray-800 rounded-2xl shadow-2xl p-6 border border-gray-700">
+        <!-- Header -->
+        <div class="text-center mb-6">
+            <h1 class="text-2xl font-bold text-green-400">CloudP Tech Services</h1>
+            <p class="text-gray-400 text-sm mt-1">Instant M-Pesa Payment Portal</p>
         </div>
 
-        <div class="p-6 space-y-6">
-            <!-- Amount Card -->
-            <div class="flex items-center justify-between bg-slate-900/60 border border-slate-700/60 p-4 rounded-xl">
-                <div>
-                    <span class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Test Item</span>
-                    <p class="text-sm font-medium text-slate-200">Sandbox Verification Charge</p>
-                </div>
-                <div class="text-right">
-                    <span class="text-xs text-slate-400 font-semibold">AMOUNT</span>
-                    <p class="text-xl font-bold text-emerald-400">KES 1.00</p>
-                </div>
+        <!-- Order Summary -->
+        <div class="bg-gray-700/50 rounded-lg p-4 mb-6 border border-gray-600">
+            <div class="flex justify-between items-center text-sm">
+                <span class="text-gray-300">Test Item</span>
+                <span class="font-semibold">Sandbox Verification Charge</span>
             </div>
+            <div class="flex justify-between items-center text-lg font-bold mt-2">
+                <span>Amount</span>
+                <span class="text-green-400">KES 1.00</span>
+            </div>
+        </div>
 
-            <!-- Payment Form -->
-            <form id="paymentForm" onsubmit="handlePayment(event)" class="space-y-4">
-                <div>
-                    <label for="phone" class="block text-xs font-semibold uppercase text-slate-300 mb-1">
-                        M-Pesa Phone Number
-                    </label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 font-medium text-sm">
-                            +254
-                        </div>
-                        <input 
-                            type="tel" 
-                            id="phone" 
-                            name="phone"
-                            placeholder="712345678" 
-                            pattern="[0-9]{9}" 
-                            maxlength="9"
-                            required
-                            class="w-full pl-16 pr-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all font-mono"
-                        >
-                    </div>
-                    <p class="text-xs text-slate-400 mt-1">Enter number without country code (e.g. 712345678)</p>
-                </div>
-
-                <button 
-                    type="submit" 
-                    id="submitBtn" 
-                    class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3.5 px-4 rounded-xl shadow-lg shadow-emerald-900/40 transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+        <!-- Form -->
+        <form id="paymentForm" onsubmit="handlePayment(event)" class="space-y-4">
+            <div>
+                <label for="phone" class="block text-sm font-medium text-gray-300 mb-1">
+                    M-Pesa Phone Number
+                </label>
+                <input 
+                    type="tel" 
+                    id="phone" 
+                    name="phone" 
+                    placeholder="0712345678" 
+                    required 
+                    class="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none text-white text-lg tracking-wide"
                 >
-                    <span id="btnText">Pay KES 1 via M-Pesa</span>
-                    <div id="btnSpinner" class="spinner hidden"></div>
-                </button>
-            </form>
-
-            <!-- Interactive Status Box -->
-            <div id="statusBox" class="hidden p-4 rounded-xl border transition-all text-sm">
-                <div class="flex items-start gap-3">
-                    <div id="statusIcon" class="mt-0.5"></div>
-                    <div class="flex-1">
-                        <h4 id="statusTitle" class="font-semibold text-sm">Processing Payment</h4>
-                        <p id="statusDesc" class="text-xs mt-1 text-slate-300">Sending STK Push to your phone...</p>
-                        <div id="receiptContainer" class="hidden mt-2 pt-2 border-t border-emerald-500/30 text-xs font-mono text-emerald-300">
-                            Receipt: <span id="receiptNum"></span>
-                        </div>
-                    </div>
-                </div>
+                <p class="text-xs text-gray-400 mt-1">Format: 07XXXXXXXX or 01XXXXXXXX</p>
             </div>
-        </div>
 
-        <div class="bg-slate-900/80 px-6 py-3 border-t border-slate-700/50 text-center text-xs text-slate-500">
+            <button 
+                type="submit" 
+                id="submitBtn"
+                class="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-3 rounded-lg transition duration-200 flex items-center justify-center space-x-2"
+            >
+                <span id="btnText">Pay KES 1 via M-Pesa</span>
+                <div id="btnSpinner" class="loader hidden"></div>
+            </button>
+        </form>
+
+        <!-- Status Box -->
+        <div id="statusBox" class="mt-4 hidden p-4 rounded-lg text-sm border"></div>
+
+        <div class="mt-6 text-center text-xs text-gray-500">
             Powered by Safaricom Daraja API
         </div>
     </div>
 
     <script>
-        let pollInterval = null;
+        let pollingInterval = null;
 
         async function handlePayment(event) {
             event.preventDefault();
 
             const phoneInput = document.getElementById('phone').value.trim();
-            const formattedPhone = '254' + phoneInput;
-
             const submitBtn = document.getElementById('submitBtn');
             const btnText = document.getElementById('btnText');
             const btnSpinner = document.getElementById('btnSpinner');
 
-            // Set UI to loading state
+            // UI Loading state
             submitBtn.disabled = true;
-            submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
-            btnText.innerText = 'Initiating...';
+            btnText.textContent = "Initiating...";
             btnSpinner.classList.remove('hidden');
-
-            showStatus('info', 'Sending STK Push', 'Check your phone to enter your M-Pesa PIN...');
+            showStatus('info', 'Sending STK Push prompt to your phone...');
 
             try {
-                // Post phone number to stk_push.php
+                // Prepare Form Data
                 const formData = new FormData();
-                formData.append('phone', formattedPhone);
+                formData.append('phone', phoneInput);
 
+                // FIRST FETCH: Trigger STK Push
                 const response = await fetch('stk_push.php', {
                     method: 'POST',
                     body: formData
                 });
 
-                const data = await response.json();
+                const responseText = await response.text();
+                console.log("Raw STK Response:", responseText); // Debugging log
 
-                if (data.status === 'success' && data.checkout_id) {
-                    showStatus('warning', 'STK Push Sent!', 'Please enter your PIN on your phone to complete payment.');
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (e) {
+                    throw new Error("Invalid server response. Check browser console for raw output.");
+                }
+
+                if (data.status === 'success') {
+                    showStatus('info', data.message + ' Waiting for PIN entry...');
+                    btnText.textContent = "Awaiting PIN...";
+                    
+                    // START SECOND FETCH: Poll Status
                     startPolling(data.checkout_id);
                 } else {
-                    throw new Error(data.message || 'Failed to trigger STK Push.');
+                    resetBtn();
+                    showStatus('error', 'Initiation Failed: ' + (data.message || 'Unknown error'));
                 }
+
             } catch (error) {
-                resetButton();
-                showStatus('error', 'Initiation Failed', error.message);
+                console.error("Payment Error:", error);
+                resetBtn();
+                showStatus('error', error.message);
             }
         }
 
         function startPolling(checkoutId) {
             let attempts = 0;
-            const maxAttempts = 20; // Poll for ~60 seconds (20 * 3s)
+            const maxAttempts = 20; // Poll for 60 seconds (every 3s)
 
-            pollInterval = setInterval(async () => {
+            if (pollingInterval) clearInterval(pollingInterval);
+
+            pollingInterval = setInterval(async () => {
                 attempts++;
 
+                if (attempts > maxAttempts) {
+                    clearInterval(pollingInterval);
+                    resetBtn();
+                    showStatus('error', 'Transaction timed out. If you entered your PIN, please check your SMS.');
+                    return;
+                }
+
                 try {
+                    // SECOND FETCH: Poll Database Status
                     const res = await fetch(`status.php?checkout_id=${encodeURIComponent(checkoutId)}`);
-                    const data = await res.json();
+                    const resText = await res.text();
+                    console.log(`Poll Attempt ${attempts}:`, resText);
+
+                    let data = JSON.parse(resText);
 
                     if (data.status === 'SUCCESS') {
-                        clearInterval(pollInterval);
-                        resetButton();
-                        showStatus('success', 'Payment Successful!', 'Your transaction was confirmed.', data.receipt);
+                        clearInterval(pollingInterval);
+                        resetBtn();
+                        showStatus('success', `Payment Successful! Receipt: ${data.receipt}`);
                     } else if (data.status === 'FAILED') {
-                        clearInterval(pollInterval);
-                        resetButton();
-                        showStatus('error', 'Payment Failed', data.message || 'Transaction was canceled or failed.');
+                        clearInterval(pollingInterval);
+                        resetBtn();
+                        showStatus('error', `Payment Failed: ${data.message}`);
                     }
+                    // If still 'PENDING', keep polling...
 
-                    if (attempts >= maxAttempts) {
-                        clearInterval(pollInterval);
-                        resetButton();
-                        showStatus('error', 'Timeout', 'No callback received from M-Pesa. Check your phone or try again.');
-                    }
                 } catch (err) {
-                    console.error('Polling error:', err);
+                    console.error("Polling Error:", err);
                 }
             }, 3000);
         }
 
-        function showStatus(type, title, message, receipt = null) {
-            const box = document.getElementById('statusBox');
-            const icon = document.getElementById('statusIcon');
-            const titleEl = document.getElementById('statusTitle');
-            const descEl = document.getElementById('statusDesc');
-            const receiptContainer = document.getElementById('receiptContainer');
-            const receiptNum = document.getElementById('receiptNum');
+        function showStatus(type, message) {
+            const statusBox = document.getElementById('statusBox');
+            statusBox.classList.remove('hidden', 'bg-red-900/40', 'border-red-600', 'text-red-200', 'bg-green-900/40', 'border-green-600', 'text-green-200', 'bg-blue-900/40', 'border-blue-600', 'text-blue-200');
 
-            box.classList.remove('hidden', 'bg-blue-900/30', 'border-blue-500/50', 'bg-amber-900/30', 'border-amber-500/50', 'bg-emerald-900/30', 'border-emerald-500/50', 'bg-red-900/30', 'border-red-500/50');
-
-            if (type === 'info') {
-                box.classList.add('bg-blue-900/30', 'border-blue-500/50', 'text-blue-200');
-                icon.innerHTML = `<div class="spinner border-blue-400"></div>`;
-            } else if (type === 'warning') {
-                box.classList.add('bg-amber-900/30', 'border-amber-500/50', 'text-amber-200');
-                icon.innerHTML = `<svg class="w-5 h-5 text-amber-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+            if (type === 'error') {
+                statusBox.classList.add('bg-red-900/40', 'border-red-600', 'text-red-200');
             } else if (type === 'success') {
-                box.classList.add('bg-emerald-900/30', 'border-emerald-500/50', 'text-emerald-200');
-                icon.innerHTML = `<svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
-            } else if (type === 'error') {
-                box.classList.add('bg-red-900/30', 'border-red-500/50', 'text-red-200');
-                icon.innerHTML = `<svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>`;
-            }
-
-            titleEl.innerText = title;
-            descEl.innerText = message;
-
-            if (receipt) {
-                receiptNum.innerText = receipt;
-                receiptContainer.classList.remove('hidden');
+                statusBox.classList.add('bg-green-900/40', 'border-green-600', 'text-green-200');
             } else {
-                receiptContainer.classList.add('hidden');
+                statusBox.classList.add('bg-blue-900/40', 'border-blue-600', 'text-blue-200');
             }
+
+            statusBox.innerHTML = message;
         }
 
-        function resetButton() {
+        function resetBtn() {
             const submitBtn = document.getElementById('submitBtn');
             const btnText = document.getElementById('btnText');
             const btnSpinner = document.getElementById('btnSpinner');
 
             submitBtn.disabled = false;
-            submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
-            btnText.innerText = 'Pay KES 1 via M-Pesa';
+            btnText.textContent = "Pay KES 1 via M-Pesa";
             btnSpinner.classList.add('hidden');
         }
     </script>
